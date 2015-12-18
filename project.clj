@@ -28,7 +28,8 @@
                  [secretary "1.2.3"]
                  [org.clojure/core.async "0.2.374"]
                  [cljs-ajax "0.5.2"]
-                 [http-kit "2.1.19"]]
+                 [http-kit "2.1.19"]
+                 [com.taoensso/sente "1.7.0"]]
 
   :min-lein-version "2.0.0"
   :uberjar-name "zwoop.jar"

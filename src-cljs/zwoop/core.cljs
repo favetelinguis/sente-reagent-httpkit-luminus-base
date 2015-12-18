@@ -1,48 +1,19 @@
 (ns zwoop.core
- (:require [reagent.core :as reagent :refer [atom]]
-           [zwoop.websockets :as ws]))
+  (:require-macros
+   [cljs.core.async.macros :as asyncm :refer (go go-loop)])
+  (:require
+   ;; <other stuff>
+   [cljs.core.async :as async :refer (<! >! put! chan)]
+   [taoensso.sente  :as sente :refer (cb-success?)] ; <--- Add this
+  ))
 
-;; Global state
-(defonce messages (atom []))
-
-(defn message-list []
- [:ul
-  (for [[i message] (map-indexed vector @messages)]
-    ^{:key i}
-    [:li message])])
-
-(defn message-input []
- (let [value (atom nil)]
-   (fn []
-     [:input.form-control
-      {:type :text
-       :placeholder "type in a message and press enter"
-       :value @value
-       :on-change #(reset! value (-> % .-target .-value))
-       :on-key-down
-       #(when (= (.-keyCode %) 13)
-          (ws/send-transit-msg!
-           {:message @value})
-          (reset! value nil))}])))
-
-(defn home-page []
- [:div.container
-  [:div.row
-   [:div.col-md-12
-    [:h2 "Welcome to chat"]]]
-  [:div.row
-   [:div.col-sm-6
-    [message-list]]]
-  [:div.row
-   [:div.col-sm-6
-    [message-input]]]])
-
-(defn update-messages! [{:keys [message]}]
-  (swap! messages #(vec (take 10 (conj % message)))))
-
-(defn mount-components []
- (reagent/render-component [#'home-page] (.getElementById js/document "app")))
-
-(defn init! []
- (ws/make-websocket! (str "ws://" (.-host js/location) "/ws") update-messages!)
- (mount-components))
+;;; Add this: --->
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket! "/chsk" ; Note the same path as before
+       {:type :auto ; e/o #{:auto :ajax :ws}
+       })]
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state)   ; Watchable, read-only atom
+  )

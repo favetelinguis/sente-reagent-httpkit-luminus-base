@@ -1,29 +1,23 @@
 (ns zwoop.routes.websockets
- (:require [compojure.core :refer [GET defroutes]]
+ (:require [compojure.core :refer [GET POST defroutes]]
            [org.httpkit.server
             :refer [send! with-channel on-close on-receive]]
+           [taoensso.sente :as sente]
+           [taoensso.sente.server-adapters.http-kit      :refer (sente-web-server-adapter)]
            [cognitect.transit :as t]
            [taoensso.timbre :as timbre]))
 
-(defonce channels (atom #{}))
-
-(defn connect! [channel]
- (timbre/info "channel open")
- (swap! channels conj channel))
-
-(defn disconnect! [channel status]
- (timbre/info "channel closed:" status)
- (swap! channels #(remove #{channel} %)))
-
-(defn notify-clients [msg]
- (doseq [channel @channels]
-     (send! channel msg)))
-
-(defn ws-handler [request]
- (with-channel request channel
-               (connect! channel)
-               (on-close channel (partial disconnect! channel))
-               (on-receive channel #(notify-clients %))))
+(let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn
+              connected-uids]}
+      (sente/make-channel-socket! sente-web-server-adapter {})]
+  (def ring-ajax-post                ajax-post-fn)
+  (def ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn)
+  (def ch-chsk                       ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send!                    send-fn) ; ChannelSocket's send API fn
+  (def connected-uids                connected-uids) ; Watchable, read-only atom
+  )
 
 (defroutes websocket-routes
- (GET "/ws" request (ws-handler request)))
+  (GET  "/chsk" req (ring-ajax-get-or-ws-handshake req))
+  (POST "/chsk" req (ring-ajax-post                req))
+  )
