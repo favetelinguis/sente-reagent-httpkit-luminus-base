@@ -1,11 +1,15 @@
 (ns zwoop.pages.home
   (:require
    ;; [goog.events :as events]
+   ;; [zwoop.core :refer (chsk-send!)]
    [reagent.session :as session]
+   [taoensso.timbre :as timbre]
    [secretary.core :as secretary]))
 
 (def key-map
-  {84 #(secretary/dispatch! "#/trader")})
+  {84 #(secretary/dispatch! "#/trader")
+   ;; 79 #(chsk-send! [::test])
+   })
 
 (defn home-page []
   (session/put! :key-map key-map)

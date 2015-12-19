@@ -39,7 +39,7 @@
   :main zwoop.core
 
   :plugins [[lein-environ "1.0.1"]
-            ;; [cider/cider-nrepl "0.10.0"]
+            [cider/cider-nrepl "0.10.0-SNAPSHOT"]
             [lein-cljsbuild "1.1.1"]]
   :clean-targets ^{:protect false} [:target-path [:cljsbuild :builds :app :compiler :output-dir] [:cljsbuild :builds :app :compiler :output-to]]
   :cljsbuild

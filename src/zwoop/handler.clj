@@ -2,7 +2,7 @@
   (:require [compojure.core :refer [defroutes routes wrap-routes]]
             [zwoop.layout :refer [error-page]]
             [zwoop.routes.home :refer [home-routes]]
-            [zwoop.routes.websockets :refer [websocket-routes]]
+            [zwoop.routes.websockets :as ws :refer [websocket-routes start-router! stop-router!]]
             [zwoop.middleware :as middleware]
             [compojure.route :as route]
             [taoensso.timbre :as timbre]
@@ -25,6 +25,8 @@
                           {:path (or (env :log-path) "zwoop.log")
                            :max-size (* 512 1024)
                            :backlog 10})}})
+  (start-router!)
+  (timbre/info "Router started" @ws/router_)
   (doseq [component (:started (mount/start))]
     (timbre/info component "started"))
   ((:init defaults)))
@@ -34,6 +36,7 @@
    shuts down, put any clean up code here"
   []
   (timbre/info "zwoop is shutting down...")
+  (stop-router!)
   (doseq [component (:stopped (mount/stop))]
     (timbre/info component "stopped"))
   (timbre/info "shutdown complete!"))
