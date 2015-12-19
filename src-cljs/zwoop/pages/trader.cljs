@@ -12,4 +12,4 @@
   [:div.container
    [:div.row
     [:div.col-md-12
-     "This is the TRADER page, hit h to navigate to home page."]]])
+     "New page - hit h to navigate back!"]]])
